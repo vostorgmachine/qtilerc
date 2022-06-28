@@ -4,8 +4,10 @@
 # | |/ / /_/ (__  ) /_/ /_/ / /  / /_/ /  / /___/ /_/ / / / / __/ / /_/ /
 # |___/\____/____/\__/\____/_/   \__, /   \____/\____/_/ /_/_/ /_/\__, /
 #                               /____/                           /____/
+
 import os
 import subprocess
+from dbus_next.aio import *
 from libqtile.lazy import lazy
 from libqtile.utils import guess_terminal
 from libqtile import bar, layout, widget, hook
@@ -21,6 +23,24 @@ def autostart():
     home = os.path.expanduser('~/scripts/first.sh')
     subprocess.Popen([home])
 
+# Hooks
+@hook.subscribe.startup_once
+def autostart():
+    home = os.path.expanduser('alacritty+tmux')
+    subprocess.Popen([home])
+
+# Hooks
+@hook.subscribe.startup_once
+def autostart():
+    home = os.path.expanduser('udiskie+args')
+    subprocess.Popen([home])
+
+# Hooks
+@hook.subscribe.startup_once
+def autostart():
+    home = os.path.expanduser('blueberry-tray')
+    subprocess.Popen([home])
+
 keys = [
     # Switch between windows
     Key([mod], "h", lazy.layout.left(), desc="Move focus to left"),
@@ -30,7 +50,7 @@ keys = [
 
     # Moving between monitors
     Key([mod], "Tab", lazy.next_screen(), desc="Toggle between monitors"),
-    Key([mod], "space", lazy.layout.next(), desc="Move window focus to other window"),
+    # Key([mod], "space", lazy.layout.next(), desc="Move window focus to other window"),
 
     # Move windows between left/right columns or move up/down in current stack.
     Key([mod, "shift"], "h", lazy.layout.shuffle_left(), desc="Move window to the left"),
@@ -56,8 +76,9 @@ keys = [
 
     # Soft spawn section
     Key([mod], "Return", lazy.spawn(terminal), desc="Launch terminal"),
-
-    Key([mod], "e", lazy.spawn("emacs")),
+    Key([mod], "e", lazy.spawn("alacritty+vim")),
+    # Key([mod], "e", lazy.spawn("emacsclient -c -a emacs")),
+    Key([mod, "shift"], "e", lazy.spawn("emacs ~/.config/qtile/config.py ")),
     Key([mod], "n", lazy.spawn("librewolf")),
     Key([mod], "m", lazy.spawn("firefox")),
 
@@ -68,11 +89,9 @@ keys = [
         lazy.layout.toggle_split(),
         desc="Toggle between split and unsplit sides of stack",
     ),
-
 ]
 
 groups = [Group(i) for i in "uiop"]
-
 for i in groups:
     keys.extend(
         [
@@ -90,46 +109,31 @@ for i in groups:
                 lazy.window.togroup(i.name, switch_group=True),
                 desc="Switch to & move focused window to group {}".format(i.name),
             ),
-            # Or, use below if you prefer not to switch to that group.
-            # # mod1 + shift + letter of group = move focused window to group
-            # Key([mod, "shift"], i.name, lazy.window.togroup(i.name),
-            #     desc="move focused window to group {}".format(i.name)),
         ]
     )
 
 layouts = [
-    layout.Columns
 
-    (border_focus_stack=["#43b3ae", "#c6e6e3"],
+    layout.Columns
+    (
+    border_focus_stack=["#43b3ae", "#c6e6e3"],
     border_width=1,
     margin = 5,
     border_focus='#ffffff',
-    border_normal='#000000' ),
+    border_normal='#000000'
+    ),
 
     layout.Max(),
-    # Try more layouts by unleashing below layouts.
-    # layout.Stack(num_stacks=2),
-    # layout.Bsp(),
-    # layout.Matrix(),
-    # layout.MonadTall(),
-    # layout.MonadWide(),
-    # layout.RatioTile(),
-    # layout.Tile(),
-    # layout.TreeTab(),
-    # layout.VerticalTile(),
-    # layout.Zoomy(),
 ]
 
 widget_defaults = dict(
     font="Mononoki NF",
-    fontsize=12,
+    fontsize=13,
     padding=3,
 )
 extension_defaults = widget_defaults.copy()
 
-screens = [
-    Screen(
-        bottom=bar.Bar(
+screens = [Screen(top=bar.Bar(
             [
                 widget.CurrentLayout(),
                 widget.GroupBox(),
@@ -142,8 +146,16 @@ screens = [
                     name_transform=lambda name: name.upper(),
                 ),
                 widget.Systray(),
-                widget.KeyboardLayout(configured_keyboards=['us','ru']),
+                widget.Net(interface="wlp0s20f0u5"),
+
+                # Keyboard layout
+                widget.KeyboardLayout(configured_keyboards=['us',
+                                                            'ru',
+                                                            # 'it'
+                                                            ]),
+
                 widget.Clock(format="%Y-%m-%d %a %I:%M:%S %p"),
+
                 widget.QuickExit(),
             ],
             24,
